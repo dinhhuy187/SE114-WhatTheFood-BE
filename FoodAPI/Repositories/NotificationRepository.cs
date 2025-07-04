@@ -76,11 +76,11 @@ namespace FoodAPI.Repositories
                 .Include(u => u.Notifications)
                 .FirstOrDefaultAsync(u => u.Id == userId)
                 ?? throw new Exception("No user found");
-
-            return user.Notifications
-                .OrderBy(n => n.IsRead)
-                .OrderByDescending(n => n.DateTime)
-                .ToList();
+            var read = user.Notifications.Where(n => n.IsRead = true);
+            var unread = user.Notifications.Where(n => n.IsRead = false);
+            var result = unread.OrderBy(n => n.DateTime).Concat(read.OrderBy(n => n.DateTime));
+            
+            return result.ToList();
         }
 
         public async Task<IEnumerable<string>> GetUserTokens(int userId)
