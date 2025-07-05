@@ -26,11 +26,31 @@ public class ShippingInfoRepository(FoodOrderContext foodOrderContext) : IShippi
                     .ThenInclude(fi => fi!.FoodCategory)
             .Include(si => si.Address)
             .Include(si => si.Rating)
+            .Include(si => si.User)
             .OrderBy(si => si.OrderTime)
             .Skip(pageSize * pageNumber)
             .Take(pageSize)
             .ToListAsync();
         return (collectionToReturn, paginationMetadata);
+    }
+
+    public async Task<IEnumerable<ShippingInfo>> GetAllOwnedOrder(int ownerId, string status = "")
+    {
+        var items = await foodOrderContext.ShippingInfos
+            .Include(si => si.Restaurant)
+                .ThenInclude(r => r!.Address)
+            .Include(si => si.ShippingInfoDetails)
+                .ThenInclude(sd => sd.FoodItem)
+                    .ThenInclude(fi => fi!.FoodCategory)
+            .Include(si => si.Address)
+            .Include(si => si.Rating)
+            .Include(si => si.User)
+            .OrderBy(si => si.OrderTime)
+            .Where(si => si.Restaurant!.OwnerId == ownerId)
+            .Where(si => status == "" || si.Status == status)
+            .ToListAsync();
+
+        return items;
     }
 
     public async Task<int> GetTotalRestaurantOrderAsync(int restaurantId)
@@ -46,6 +66,7 @@ public class ShippingInfoRepository(FoodOrderContext foodOrderContext) : IShippi
             .Include(si => si.ShippingInfoDetails).ThenInclude(sid => sid.FoodItem).ThenInclude(fi => fi!.FoodCategory)
             .Include(si => si.Restaurant).ThenInclude(r => r!.Address)
             .Include(si => si.Address)
+            .Include(si => si.User)
             .FirstOrDefaultAsync(si => si.Id == shippingInfoId);
     }
 

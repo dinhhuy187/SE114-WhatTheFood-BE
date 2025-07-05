@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FirebaseAdmin.Auth;
 using FirebaseAdmin.Messaging;
 using FoodAPI.Entities;
 using FoodAPI.Interfaces;
@@ -14,7 +15,7 @@ namespace FoodAPI.Controllers;
 public class UserController(IUserRepository userRepository,
     IAuthService authService,
     INotificationRepository notificationRepository,
-    IMapper mapper): ControllerBase
+    IMapper mapper) : ControllerBase
 {
     [HttpGet]
     [Authorize(Policy = "AdminAccessLevel")]
@@ -204,7 +205,7 @@ public class UserController(IUserRepository userRepository,
             {
                 var message = new Message()
                 {
-                    Notification = new ()
+                    Notification = new()
                     {
                         Title = "Vcl",
                         Body = "DDCaghwlghjkghekhgjkerhgk"
@@ -221,5 +222,17 @@ public class UserController(IUserRepository userRepository,
         {
             return BadRequest(ex.Message);
         }
+    }
+
+    [Authorize(Policy = "OwnerAccessLevel")]
+    [HttpGet("ownedrestaurant")]
+    public async Task<ActionResult> GetOwnedRestaurants()
+    {
+        var userPhone = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var user = await userRepository.FindPhoneNumberExistsAsync(userPhone);
+        if (user == null)
+            return BadRequest("Who tf are you!");
+
+        return Ok(new { restaurantId = user.OwnedRestaurant.FirstOrDefault()!.Id });
     }
 }
