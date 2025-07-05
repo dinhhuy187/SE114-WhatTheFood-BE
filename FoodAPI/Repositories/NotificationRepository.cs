@@ -76,8 +76,8 @@ namespace FoodAPI.Repositories
                 .Include(u => u.Notifications)
                 .FirstOrDefaultAsync(u => u.Id == userId)
                 ?? throw new Exception("No user found");
-            var read = user.Notifications.Where(n => n.IsRead = true);
-            var unread = user.Notifications.Where(n => n.IsRead = false);
+            var read = user.Notifications.Where(n => n.IsRead == true);
+            var unread = user.Notifications.Where(n => n.IsRead == false);
             var result = unread.OrderBy(n => n.DateTime).Concat(read.OrderBy(n => n.DateTime));
             
             return result.ToList();
